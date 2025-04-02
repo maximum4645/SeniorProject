@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Pi Camera Stream</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        img { border: 1px solid #ccc; }
+        select, button { padding: 5px 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Raspberry Pi Camera Stream</h1>
+    <!-- MJPEG stream from /video_feed -->
+    <img src="{{ url_for('video_feed') }}" width="640" height="480" />
+    
+    <!-- Form for capturing an image with a selected class -->
+    <form method="POST" action="/capture">
+        <label for="image_class">Select Class:</label>
+        <select name="image_class" id="image_class">
+            <option value="cardboard">Cardboard</option>
+            <option value="plastic">Plastic</option>
+            <option value="metal">Metal</option>
+            <option value="organic">Organic</option>
+        </select>
+        <button type="submit">Capture</button>
+    </form>
+    
+    <!-- Display flash messages (if any) -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+</body>
+</html>

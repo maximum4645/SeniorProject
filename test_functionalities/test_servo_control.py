@@ -24,7 +24,7 @@ pca.frequency = 50  # 50 Hz is standard for SG90 servos
 # 2) Create servo objects on channels 3 and 8
 #    Using 500 µs for min_pulse and 2400 µs for max_pulse (per your SG90 datasheet)
 servo3 = servo.Servo(pca.channels[3], min_pulse=500, max_pulse=2400)
-servo8 = servo.Servo(pca.channels[8], min_pulse=500, max_pulse=2400)
+servo8 = servo.Servo(pca.channels[7], min_pulse=500, max_pulse=2400)
 
 # 3) Define the positions for each servo
 #    Channel 3: moves from 0° (closed) to 90° (open)
@@ -32,7 +32,7 @@ SERVO_3_CLOSED = 0
 SERVO_3_OPEN   = 90
 
 #    Channel 8: mounted oppositely, so moves from 180° (closed) to 90° (open)
-SERVO_8_CLOSED = 180
+SERVO_8_CLOSED = 0
 SERVO_8_OPEN   = 90
 
 try:
@@ -41,13 +41,13 @@ try:
         servo3.angle = SERVO_3_CLOSED
         servo8.angle = SERVO_8_CLOSED
         print("Flaps closed: Servo 3 -> 0°, Servo 8 -> 180°")
-        time.sleep(1)  # Give time for movement
+        time.sleep(3)  # Give time for movement
 
         # Move servos to the "open" position
         servo3.angle = SERVO_3_OPEN
         servo8.angle = SERVO_8_OPEN
         print("Flaps open: Servo 3 -> 90°, Servo 8 -> 90°")
-        time.sleep(1)
+        time.sleep(3)
 
 except KeyboardInterrupt:
     print("Interrupted by user. Stopping servo signals.")

@@ -1,62 +1,88 @@
 #!/usr/bin/env python3
-"""
-main.py - Basic Autonomous Operation Using Finished Modules
-
-This version uses the ultrasonic sensor and camera capture modules.
-It simulates the classification and control steps by simply printing messages.
-"""
-
 import time
+import random
 
-# Import global settings
-from config import DISTANCE_THRESHOLD, POLLING_INTERVAL
+from config import (
+    DETECTION_THRESHOLD_CM,
+    CLEARANCE_THRESHOLD_CM,
+    POLLING_INTERVAL,
+    CLASS_TO_CHANNEL,
+)
+from sensors.ultrasonic_sensor import init_ultrasonic, read_distance, cleanup as cleanup_ultrasonic
+from sensors.limit_switch import init_limit_switch, is_limit_switch_activated, cleanup_limit_switch
+from control.servo_control import init_servo, open_trapdoor, close_trapdoor, cleanup_servo
 
-# Import finished sensor and camera functions
-from sensors.ultrasonic_sensor import initialize as init_ultrasonic, measure_distance
-from camera.camera_capture import initialize as init_camera, capture_image
+# (Other stubs remain for stepper, camera, classification...)
+def home_stepper():
+    print("[stub] home_stepper()"); time.sleep(1)
+def init_camera():
+    print("[stub] init_camera()"); time.sleep(1)
+def load_model():
+    print("[stub] load_model()"); time.sleep(1); return "model"
+def capture_image_to_memory():
+    print("[stub] capture_image_to_memory()"); time.sleep(1); return None
+def classify_image(model, img):
+    label = random.choice(list(CLASS_TO_CHANNEL.keys()))
+    print(f"[stub] classify_image() -> {label}"); time.sleep(1); return label
+def init_stepper():
+    print("[stub] init_stepper()"); time.sleep(1)
+def move_to_channel(t):
+    print(f"[stub] move_to_channel({t})"); time.sleep(1)
+def cleanup_all():
+    print("[stub] cleanup_all()"); time.sleep(1)
+
+def return_home():
+    """Home by polling limit switch."""
+    print("[STEP] return_home(): moving until switch hits…")
+    while not is_limit_switch_activated():
+        print(".", end="", flush=True); time.sleep(0.1)
+    print("\n[STEP] Home switch hit!")
 
 def main():
-    # Initialize the ultrasonic sensor and camera
-    print("Initializing ultrasonic sensor and camera...")
+    # Initialize real modules
     init_ultrasonic()
+    init_limit_switch()
+    init_servo()
+    # stub inits
     init_camera()
+    init_stepper()
 
-    print("System started. Monitoring sensor input...")
+    print("\n[MAIN] Homing startup…")
+    home_stepper()
 
-    while True:
-        distance = measure_distance()
-        print("Distance: {:.2f} cm".format(distance))
-        
-        if distance < DISTANCE_THRESHOLD:
-            print("Waste detected!")
-            
-            # Capture an image (but do not save it)
-            image = capture_image()
-            
-            # Simulate classification (dummy result)
-            print("Classifying image... (dummy result: plastic)")
-            classification = "plastic"
-            print("Classification result:", classification)
-            
-            # Simulate control actions with simple print statements and delays
-            print("Moving the box to channel 1 (simulated stepper motor)...")
-            time.sleep(1)
-            
-            print("Opening trapdoor (simulated servo motor)...")
-            time.sleep(1)
-            
-            print("Closing trapdoor (simulated servo motor)...")
-            time.sleep(1)
-            
-            print("Returning box to home position (simulated stepper motor)...")
-            time.sleep(1)
-            
-            # Wait until the waste is cleared before continuing
-            while measure_distance() < DISTANCE_THRESHOLD:
-                print("Waiting for waste to clear...")
-                time.sleep(POLLING_INTERVAL)
-        else:
+    model = load_model()
+    print("\n[MAIN] Running loop…")
+    try:
+        while True:
+            dist = read_distance()
+            print(f"[ultra] {dist:.1f} cm")
+            if dist < DETECTION_THRESHOLD_CM:
+                print("[MAIN] Detected! Running full cycle…")
+                img = capture_image_to_memory()
+                cls = classify_image(model, img)
+                tgt = CLASS_TO_CHANNEL[cls]
+                move_to_channel(tgt)
+
+                # **REAL trapdoor actions**
+                open_trapdoor()
+                time.sleep(1)
+                close_trapdoor()
+
+                return_home()
+                print("[MAIN] Cycle done; waiting clearance…")
+                while read_distance() < CLEARANCE_THRESHOLD_CM:
+                    print(f"[wait] {read_distance():.1f} cm"); time.sleep(POLLING_INTERVAL)
+                print("[MAIN] Cleared.")
+
             time.sleep(POLLING_INTERVAL)
+
+    except KeyboardInterrupt:
+        print("\n[MAIN] Stopping…")
+    finally:
+        cleanup_ultrasonic()
+        cleanup_limit_switch()
+        cleanup_servo()
+        cleanup_all()
 
 if __name__ == "__main__":
     main()

@@ -38,13 +38,13 @@ SERVO_OPEN_ANGLE      = 90     # Servo open position
 SERVO_CLOSED_ANGLE    = 0      # Servo closed position
 
 # Which PCA9685 channels are your trapdoor servos?
-TRAPDOOR_SERVOS = [3, 8]
+TRAPDOOR_SERVOS = [3, 7]
 
 # If a servo is mounted “backwards,” invert its angle:
 # angle_to_set = 180 - base_angle
 SERVO_INVERT = {
     3: False,
-    8: True
+    7: False
 }
 # ----------------------------
 # Camera Settings

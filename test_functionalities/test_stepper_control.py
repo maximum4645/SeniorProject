@@ -14,10 +14,6 @@ Wiring (BCM numbering):
   • LIMIT SW   → GPIO17  (pin 11)
   • ENABLE     → tied directly to GND (always enabled)
   • Common GND → Pi GND and DRV8825 GND tied together
-
-Before running:
-  • Verify your wiring and that the motor power supply (VMOT) shares ground with the Pi.
-  • Run as root: sudo python3 test_stepper_control.py
 """
 
 import RPi.GPIO as GPIO
@@ -98,11 +94,11 @@ class StepperControl:
         GPIO.cleanup()
 
 
-def test_move_forward(stepper, steps):
+def test_move_forward(stepper, steps=200):
     print("\n--- TEST: Move Forward ---")
     stepper.move_steps(steps)
 
-def test_move_backward(stepper, steps):
+def test_move_backward(stepper, steps=200):
     print("\n--- TEST: Move Backward ---")
     stepper.move_steps(-steps)
 
@@ -127,9 +123,9 @@ def main():
         )
 
         # Run tests
-        test_move_forward(stepper, steps=1500)
+        test_move_forward(stepper, steps=400)
         time.sleep(1)
-        test_move_backward(stepper, steps=1500)
+        test_move_backward(stepper, steps=400)
         time.sleep(1)
         test_homing(stepper)
 

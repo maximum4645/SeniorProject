@@ -11,39 +11,30 @@ from config import (
 from sensors.ultrasonic_sensor import init_ultrasonic, read_distance, cleanup as cleanup_ultrasonic
 from sensors.limit_switch import init_limit_switch, is_limit_switch_activated, cleanup_limit_switch
 from control.servo_control import init_servo, open_trapdoor, close_trapdoor, cleanup_servo
+from control.stepper_control import init_stepper, home_stepper, move_to_channel, cleanup_all
 
-# (Other stubs remain for stepper, camera, classification...)
-def home_stepper():
-    print("[stub] home_stepper()"); time.sleep(1)
+# (Camera + classification still stubbed out)
 def init_camera():
     print("[stub] init_camera()"); time.sleep(1)
+
 def load_model():
-    print("[stub] load_model()"); time.sleep(1); return "model"
+    print("[stub] load_model()"); time.sleep(1)
+    return "model"
+
 def capture_image_to_memory():
-    print("[stub] capture_image_to_memory()"); time.sleep(1); return None
+    print("[stub] capture_image_to_memory()"); time.sleep(1)
+    return None
+
 def classify_image(model, img):
     label = random.choice(list(CLASS_TO_CHANNEL.keys()))
-    print(f"[stub] classify_image() -> {label}"); time.sleep(1); return label
-def init_stepper():
-    print("[stub] init_stepper()"); time.sleep(1)
-def move_to_channel(t):
-    print(f"[stub] move_to_channel({t})"); time.sleep(1)
-def cleanup_all():
-    print("[stub] cleanup_all()"); time.sleep(1)
-
-def return_home():
-    """Home by polling limit switch."""
-    print("[STEP] return_home(): moving until switch hits…")
-    while not is_limit_switch_activated():
-        print(".", end="", flush=True); time.sleep(0.1)
-    print("\n[STEP] Home switch hit!")
+    print(f"[stub] classify_image() -> {label}"); time.sleep(1)
+    return label
 
 def main():
     # Initialize real modules
     init_ultrasonic()
     init_limit_switch()
     init_servo()
-    # stub inits
     init_camera()
     init_stepper()
 
@@ -58,17 +49,25 @@ def main():
             print(f"[ultra] {dist:.1f} cm")
             if dist < DETECTION_THRESHOLD_CM:
                 print("[MAIN] Detected! Running full cycle…")
+
+                # a) Grab & classify
                 img = capture_image_to_memory()
                 cls = classify_image(model, img)
                 tgt = CLASS_TO_CHANNEL[cls]
+
+                # b) Slide to the right bin
                 move_to_channel(tgt)
 
-                # **REAL trapdoor actions**
+                # c) Dump it
                 open_trapdoor()
-                time.sleep(1)
+                time.sleep(3)
                 close_trapdoor()
 
-                return_home()
+                # d) Return home using real homing routine
+                print("[MAIN] Returning home via stepper…")
+                home_stepper()
+
+                # e) Wait until cleared
                 print("[MAIN] Cycle done; waiting clearance…")
                 while read_distance() < CLEARANCE_THRESHOLD_CM:
                     print(f"[wait] {read_distance():.1f} cm"); time.sleep(POLLING_INTERVAL)

@@ -67,3 +67,8 @@ CLASS_TO_CHANNEL = {
 IMAGE_SAVE_DIR = os.path.join("images")
 if not os.path.exists(IMAGE_SAVE_DIR):
     os.makedirs(IMAGE_SAVE_DIR)
+
+# ----------------------------
+# Path to your TFLite file (relative to SeniorProject/)
+MODEL_PATH = os.path.join("model", "mobilenet_v2.tflite")
+# ----------------------------

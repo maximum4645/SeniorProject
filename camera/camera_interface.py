@@ -8,6 +8,13 @@ Uses the base camera module (camera_capture.py) for camera functions.
 """
 
 import os
+import sys
+
+SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 import re
 import cv2
 from flask import Flask, render_template, Response, request, redirect, flash, url_for
@@ -17,9 +24,8 @@ from config import IMAGE_SAVE_DIR
 app = Flask(__name__)
 app.secret_key = 'pi'  # Replace with a secure key for production
 
-# Initialize the camera using the base module and start it.
-camera = initialize()
-camera.start()
+# Initialize the camera using the base module.
+camera = initialize(mode="video")
 
 # Ensure the image save directory exists.
 os.makedirs(IMAGE_SAVE_DIR, exist_ok=True)

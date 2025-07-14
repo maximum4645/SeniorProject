@@ -67,9 +67,12 @@ class TFLiteClassifier:
         tensor = self._preprocess(image_bgr)
         self.interpreter.set_tensor(self.input_index, tensor)
         self.interpreter.invoke()
-        preds = self.interpreter.get_tensor(self.output_index)[0]
-        idx = int(np.argmax(preds))
-        score = float(preds[idx])
+        # get raw output and convert to probabilities via softmax
+        raw = self.interpreter.get_tensor(self.output_index)[0]
+        exp = np.exp(raw - np.max(raw))        # for numerical stability
+        probs = exp / exp.sum()
+        idx = int(np.argmax(probs))
+        score = float(probs[idx] * 100.0)      # as a percentage (0–100)
         label = CLASS_NAMES[idx] if idx < len(CLASS_NAMES) else str(idx)
         return label, score
 

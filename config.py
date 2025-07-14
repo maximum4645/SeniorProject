@@ -70,5 +70,5 @@ if not os.path.exists(IMAGE_SAVE_DIR):
 
 # ----------------------------
 # Path to your TFLite file (relative to SeniorProject/)
-MODEL_PATH = os.path.join("model", "mobilenet_v2.tflite")
+MODEL_PATH = os.path.join("model", "model_1.tflite")
 # ----------------------------

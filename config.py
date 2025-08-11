@@ -13,15 +13,16 @@ I2C_SDA_PIN = 2    # Physical pin 3
 I2C_SCL_PIN = 3    # Physical pin 5
 
 # Limit Switch
-LIMIT_SWITCH_PIN = 17  # Physical pin 11
+LIMIT_SWITCH_PIN_LEFT = 17  # Physical pin 11
+LIMIT_SWITCH_PIN_RIGHT = 27 # Physical pin 13
 
 # Ultrasonic Sensor
 ULTRASONIC_TRIGGER_PIN = 23  # Physical pin 16
 ULTRASONIC_ECHO_PIN    = 24  # Physical pin 18
 
 # DRV8825 Stepper Motor Driver
-STEPPER_STEP_PIN = 5   # Physical pin 29
-STEPPER_DIR_PIN  = 6   # Physical pin 31
+STEPPER_STEP_PIN = 6   # Physical pin 31
+STEPPER_DIR_PIN  = 5   # Physical pin 29
 
 # ----------------------------
 # Sensor Thresholds & Timing (in appropriate units)

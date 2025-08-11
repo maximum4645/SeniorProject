@@ -18,7 +18,7 @@ def init_ultrasonic():
     time.sleep(0.1)  # Allow sensor to settle
 
 def read_distance() -> float:
-    """Measure and return distance in cm using the ultrasonic sensor."""
+    """Measure and return distance in cm using the ultrasonic sensor, or None if no sensor."""
     # Trigger a 10 µs pulse
     GPIO.output(ULTRASONIC_TRIGGER_PIN, True)
     time.sleep(0.00001)
@@ -28,13 +28,20 @@ def read_distance() -> float:
     start_time = time.time()
     timeout = start_time + 0.04
     while GPIO.input(ULTRASONIC_ECHO_PIN) == 0 and time.time() < timeout:
-        start_time = time.time()
+        pass
+    if GPIO.input(ULTRASONIC_ECHO_PIN) == 0:
+        return None  # no echo received
+
+    start_time = time.time()
 
     # Wait for echo end
-    stop_time = time.time()
-    timeout = stop_time + 0.04
+    timeout = start_time + 0.04
     while GPIO.input(ULTRASONIC_ECHO_PIN) == 1 and time.time() < timeout:
-        stop_time = time.time()
+        pass
+    if GPIO.input(ULTRASONIC_ECHO_PIN) == 1:
+        return None  # echo never ended
+
+    stop_time = time.time()
 
     # Compute distance (speed of sound ~34300 cm/s)
     elapsed = stop_time - start_time

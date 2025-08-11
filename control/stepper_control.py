@@ -1,4 +1,4 @@
-# control/stepper_control.py
+#!/usr/bin/env python3
 """
 Wrapper for stepper motor control (DRV8825 + NEMA17) based on test_stepper_control.py.
 Provides initialization, homing, movement to waste channels, and cleanup functions.
@@ -8,11 +8,18 @@ import RPi.GPIO as GPIO
 import config
 
 class StepperControl:
-    def __init__(self, step_pin, dir_pin, enable_pin=None, limit_switch_pin=None):
+    def __init__(self, step_pin, dir_pin,
+                 enable_pin=None,
+                 limit_switch_pin_left=None,
+                 limit_switch_pin_right=None):
         self.step_pin = step_pin
         self.dir_pin = dir_pin
         self.enable_pin = enable_pin
-        self.limit_switch_pin = limit_switch_pin
+        self.limit_switch_pin_left = limit_switch_pin_left
+        self.limit_switch_pin_right = limit_switch_pin_right
+
+        # Collect active limit switch pins
+        self._switch_pins = []
 
         # Use BCM numbering
         GPIO.setmode(GPIO.BCM)
@@ -26,40 +33,67 @@ class StepperControl:
             GPIO.setup(self.enable_pin, GPIO.OUT)
             GPIO.output(self.enable_pin, GPIO.LOW)
 
-        # Optional limit switch (pull-up, active-low)
-        if self.limit_switch_pin is not None:
-            GPIO.setup(self.limit_switch_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # Optional left (homing) and right (safety) switches
+        if self.limit_switch_pin_left is not None:
+            GPIO.setup(self.limit_switch_pin_left,
+                       GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            self._switch_pins.append(self.limit_switch_pin_left)
+        if self.limit_switch_pin_right is not None:
+            GPIO.setup(self.limit_switch_pin_right,
+                       GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            self._switch_pins.append(self.limit_switch_pin_right)
 
         print(f"[INIT] STEP={self.step_pin}, DIR={self.dir_pin}, "
               f"EN={self.enable_pin if self.enable_pin is not None else 'None (GND)'}, "
-              f"LIMIT={self.limit_switch_pin if self.limit_switch_pin is not None else 'None'}")
+              f"SWITCHES={self._switch_pins if self._switch_pins else 'None'}")
 
     def move_steps(self, steps, step_delay=0.002):
+        """
+        Move the motor by 'steps' pulses.
+        Positive → forward (DIR LOW)
+        Negative → backward (DIR HIGH)
+        Stops if any limit switch is triggered.
+        """
         # Determine direction
         if steps >= 0:
-            GPIO.output(self.dir_pin, GPIO.HIGH)
+            GPIO.output(self.dir_pin, GPIO.LOW)
             direction = "forward"
         else:
-            GPIO.output(self.dir_pin, GPIO.LOW)
+            GPIO.output(self.dir_pin, GPIO.HIGH)
             direction = "backward"
 
         count = abs(steps)
         print(f"[MOVE] {direction} {count} steps @ {1/step_delay:.0f} Hz")
+
         for _ in range(count):
+
+	    # Safety: abort if the switch is pressed
+            if direction == "forward":
+                if self.limit_switch_pin_right is not None and GPIO.input(self.limit_switch_pin_right) == GPIO.LOW:
+                    print("[SAFETY] Right switch triggered → stopping forward motion.")
+                    break
+            else:
+                if self.limit_switch_pin_left is not None and GPIO.input(self.limit_switch_pin_left) == GPIO.LOW:
+                    print("[SAFETY] Left switch triggered → stopping backward motion.")
+                    break
+
             GPIO.output(self.step_pin, GPIO.HIGH)
             time.sleep(step_delay)
             GPIO.output(self.step_pin, GPIO.LOW)
             time.sleep(step_delay)
 
     def home(self, step_delay=0.005):
-        if self.limit_switch_pin is None:
-            print("[HOME] No limit switch configured.")
-            return
+        """
+        Home the motor: step backward until any limit switch closes.
+        Assumes switches are wired NO→GND when triggered.
+        """
+        print("[HOME] Starting homing (DIR→HIGH/backward)")
+        GPIO.output(self.dir_pin, GPIO.HIGH)
 
-        print("[HOME] Starting homing (DIR→LOW/backward)")
-        GPIO.output(self.dir_pin, GPIO.LOW)
-        # Step until switch closes (reads LOW)
-        while GPIO.input(self.limit_switch_pin) == GPIO.HIGH:
+        while True:
+            if any(GPIO.input(pin) == GPIO.LOW for pin in self._switch_pins):
+                break
+
             GPIO.output(self.step_pin, GPIO.HIGH)
             time.sleep(step_delay)
             GPIO.output(self.step_pin, GPIO.LOW)
@@ -68,6 +102,7 @@ class StepperControl:
         print("[HOME] Limit switch triggered; homing complete.")
 
     def cleanup(self):
+        """Release all GPIO resources."""
         print("[CLEANUP] Releasing GPIO")
         GPIO.cleanup()
 
@@ -82,13 +117,14 @@ def init_stepper():
         step_pin=config.STEPPER_STEP_PIN,
         dir_pin=config.STEPPER_DIR_PIN,
         enable_pin=None,
-        limit_switch_pin=config.LIMIT_SWITCH_PIN
+        limit_switch_pin_left=config.LIMIT_SWITCH_PIN_LEFT,
+        limit_switch_pin_right=config.LIMIT_SWITCH_PIN_RIGHT
     )
     return _stepper
 
 
 def home_stepper():
-    """Perform homing routine via the limit switch."""
+    """Perform homing routine via the limit switches."""
     if _stepper is None:
         raise RuntimeError("Stepper not initialized. Call init_stepper() first.")
     _stepper.home()
@@ -102,9 +138,9 @@ def move_to_channel(channel):
         raise RuntimeError("Call init_stepper() first.")
 
     # Constants:
-    spacing_cm      = 2          # channel spacing
-    belt_pitch_mm   = 2           # GT2 belt pitch
-    pulley_teeth    = 20          # count your pulley’s teeth!
+    spacing_cm        = 10          # channel spacing
+    belt_pitch_mm     = 2           # GT2 belt pitch
+    pulley_teeth      = 20          # count your pulley’s teeth!
     travel_per_rev_cm = (pulley_teeth * belt_pitch_mm) / 10  # mm→cm
 
     # Compute target:
@@ -115,7 +151,6 @@ def move_to_channel(channel):
     print(f"[STEP] channel {channel}: {distance_cm} cm → "
           f"{revs_needed:.2f} rev → {target_steps} steps")
     _stepper.move_steps(target_steps)
-
 
 
 def cleanup_all():

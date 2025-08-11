@@ -37,13 +37,20 @@ def measure_distance():
     start_time = time.time()
     timeout = start_time + 0.04  # 40 ms timeout
     while GPIO.input(ECHO_PIN) == 0 and time.time() < timeout:
-        start_time = time.time()
+        pass
+    if GPIO.input(ECHO_PIN) == 0:
+        return None  # No echo received
+
+    start_time = time.time()
 
     # Wait for the echo pin to go low and record the end time
-    stop_time = time.time()
-    timeout = stop_time + 0.04  # 40 ms timeout
+    timeout = start_time + 0.04  # 40 ms timeout
     while GPIO.input(ECHO_PIN) == 1 and time.time() < timeout:
-        stop_time = time.time()
+        pass
+    if GPIO.input(ECHO_PIN) == 1:
+        return None  # Echo never went low
+
+    stop_time = time.time()
 
     # Calculate the distance (speed of sound is ~34300 cm/s)
     time_elapsed = stop_time - start_time
@@ -53,7 +60,9 @@ def measure_distance():
 try:
     while True:
         dist = measure_distance()
-        if dist <= DISTANCE_THRESHOLD:
+        if dist is None:
+            print("No sensor connected!")
+        elif dist <= DISTANCE_THRESHOLD:
             print("Object detected! Distance: {:.2f} cm".format(dist))
         else:
             print("No object detected. Distance: {:.2f} cm".format(dist))

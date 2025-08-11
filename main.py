@@ -9,7 +9,6 @@ from config import (
     CLASS_TO_CHANNEL,
 )
 from sensors.ultrasonic_sensor import init_ultrasonic, read_distance, cleanup as cleanup_ultrasonic
-from sensors.limit_switch import init_limit_switch, is_limit_switch_activated, cleanup_limit_switch
 from control.servo_control import init_servo, open_trapdoor, close_trapdoor, cleanup_servo
 from control.stepper_control import init_stepper, home_stepper, move_to_channel, cleanup_all
 
@@ -33,7 +32,6 @@ def classify_image(model, img):
 def main():
     # Initialize real modules
     init_ultrasonic()
-    init_limit_switch()
     init_servo()
     init_camera()
     init_stepper()
@@ -79,7 +77,6 @@ def main():
         print("\n[MAIN] Stopping…")
     finally:
         cleanup_ultrasonic()
-        cleanup_limit_switch()
         cleanup_servo()
         cleanup_all()
 

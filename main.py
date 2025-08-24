@@ -54,6 +54,8 @@ def main():
                 tgt = CLASS_TO_CHANNEL[cls]
 
                 # b) Slide to the right bin
+                home_stepper()
+                time.sleep(1)
                 move_to_channel(tgt)
 
                 # c) Dump it

@@ -28,8 +28,8 @@ servo7 = servo.Servo(pca.channels[7], min_pulse=500, max_pulse=2400)
 
 # 3) Define the positions for each servo
 #    Channel 3: moves from 0° (closed) to 90° (open)
-SERVO_3_CLOSED = 0
-SERVO_3_OPEN   = 90
+SERVO_3_CLOSED = 10
+SERVO_3_OPEN   = 100
 
 #    Channel 8: mounted oppositely, so moves from 180° (closed) to 90° (open)
 SERVO_7_CLOSED = 0

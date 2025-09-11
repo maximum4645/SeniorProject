@@ -2,10 +2,10 @@
 """
 test_servo_control.py
 
-This script controls two SG90-like servos on channels 3 and 8 of a PCA9685 board.
+This script controls two SG90-like servos on channels 3 and 7 of a PCA9685 board.
 It uses the adafruit_motor.servo module to automatically convert angles into the
-correct PWM signal. The servo on channel 3 moves between 0° (closed) and 90° (open),
-while the servo on channel 8 (mounted oppositely) moves between 180° (closed) and 90° (open).
+correct PWM signal. Both servos are configured so the flaps are 90° when CLOSED
+and 0° when OPEN.
 
 Pulse width range is set to 500–2400 µs, which corresponds to typical SG90 specs.
 """
@@ -25,28 +25,30 @@ pca.frequency = 50  # 50 Hz is standard for SG90 servos
 #    Using 500 µs for min_pulse and 2400 µs for max_pulse (per your SG90 datasheet)
 servo3 = servo.Servo(pca.channels[3], min_pulse=500, max_pulse=2400)
 servo7 = servo.Servo(pca.channels[7], min_pulse=500, max_pulse=2400)
+servo_lock = servo.Servo(pca.channels[11], min_pulse=500, max_pulse=2400)
 
 # 3) Define the positions for each servo
-#    Channel 3: moves from 0° (closed) to 90° (open)
-SERVO_3_CLOSED = 10
-SERVO_3_OPEN   = 100
+#    Both servos: 90° (closed) and 0° (open)
+SERVO_3_CLOSED = 90
+SERVO_3_OPEN   = 0
 
-#    Channel 8: mounted oppositely, so moves from 180° (closed) to 90° (open)
-SERVO_7_CLOSED = 0
-SERVO_7_OPEN   = 90
+SERVO_7_CLOSED = 90
+SERVO_7_OPEN   = 0
 
 try:
     while True:
         # Move servos to the "closed" position
         servo3.angle = SERVO_3_CLOSED
         servo7.angle = SERVO_7_CLOSED
-        print("Flaps closed: Servo 3 -> 0°, Servo 7 -> 0°")
+        servo_lock.angle = SERVO_7_CLOSED
+        print("Flaps closed: Servo 3 is at 90°, Servo 7 is at 90°, Servo lock is at 90°")
         time.sleep(3)  # Give time for movement
 
         # Move servos to the "open" position
         servo3.angle = SERVO_3_OPEN
         servo7.angle = SERVO_7_OPEN
-        print("Flaps open: Servo 3 -> 90°, Servo 7 -> 90°")
+        servo_lock.angle = SERVO_7_OPEN
+        print("Flaps open: Servo 3 is at 0°, Servo 7 is at 0°, Servo lock is at 0°")
         time.sleep(3)
 
 except KeyboardInterrupt:

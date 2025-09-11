@@ -26,37 +26,47 @@ APPARENT_SPEED_DPS = 45.0   # Lower = slower, e.g., 30.0 for very slow
 UPDATE_HZ = 50.0            # 50 updates/sec -> ~20 ms per step
 
 
-def slew_to(servo_obj, target_deg, dps=APPARENT_SPEED_DPS, update_hz=UPDATE_HZ, clamp=(0.0, 180.0)):
+def slew_to_together(pairs, dps=APPARENT_SPEED_DPS, update_hz=UPDATE_HZ, clamp=(0.0, 180.0)):
     """
-    Move a positional hobby servo to `target_deg` at approx `dps` degrees/sec.
-    Simple linear ramp; blocks until finished.
-
-    Notes:
-      - On the very first command, servo_obj.angle may be None. In that case
-        we set the target directly (no ramp), then future moves will ramp.
+    Move multiple servos simultaneously to their targets at approx `dps`.
+    `pairs` is a list of (servo_obj, target_deg).
     """
     lo, hi = clamp
-    target = float(max(lo, min(hi, target_deg)))
-
-    start = servo_obj.angle
-    if start is None:
-        servo_obj.angle = target
-        return
-    start = float(start)
-
-    total = abs(target - start)
-    if total < 1e-3 or dps <= 0.0:
-        servo_obj.angle = target
-        return
-
     dt = 1.0 / float(update_hz)
-    step = dps * dt
-    steps = max(1, int(total / step))
 
-    for i in range(1, steps + 1):
-        u = i / float(steps)
-        current = start + (target - start) * u
-        servo_obj.angle = current
+    plan = []
+    max_steps = 0
+
+    for s, tgt in pairs:
+        tgt = float(max(lo, min(hi, float(tgt))))
+        start = s.angle
+
+        if start is None:
+            # First command unknown -> jump to target once (no ramp)
+            s.angle = tgt
+            steps = 0
+            start = tgt
+        else:
+            start = float(start)
+            total = abs(tgt - start)
+            if total < 1e-3 or dps <= 0.0:
+                s.angle = tgt
+                steps = 0
+            else:
+                step = dps * dt
+                steps = max(1, int(total / step))
+
+        plan.append((s, start, tgt, steps))
+        if steps > max_steps:
+            max_steps = steps
+
+    for i in range(1, max_steps + 1):
+        for s, start, tgt, steps in plan:
+            if steps == 0:
+                continue
+            u = min(1.0, i / float(steps))
+            current = start + (tgt - start) * u
+            s.angle = current
         time.sleep(dt)
 
 
@@ -74,25 +84,29 @@ def main():
     # 3) Define the positions for each servo (tune these if your endpoints buzz or bind)
     #    Channel 3: moves from ~0° (closed) to ~90° (open)
     SERVO_3_CLOSED = 0
-    SERVO_3_OPEN   = 100
+    SERVO_3_OPEN   = 90
 
     #    Channel 7: mounted oppositely, so moves from ~180° (closed) to ~90° (open)
     SERVO_7_CLOSED = 0
-    SERVO_7_OPEN   = 110
+    SERVO_7_OPEN   = 90
 
     print(f"Starting slow servo test at ~{APPARENT_SPEED_DPS}°/s. Press Ctrl+C to stop.")
 
     try:
         while True:
-            # Move servos to the "closed" position slowly
-            slew_to(servo3, SERVO_3_CLOSED)
-            slew_to(servo7, SERVO_7_CLOSED)
+            # Move servos to the "closed" position slowly (simultaneous)
+            slew_to_together([
+                (servo3, SERVO_3_CLOSED),
+                (servo7, SERVO_7_CLOSED),
+            ])
             print("Flaps closed")
             time.sleep(1)
 
-            # Move servos to the "open" position slowly
-            slew_to(servo3, SERVO_3_OPEN)
-            slew_to(servo7, SERVO_7_OPEN)
+            # Move servos to the "open" position slowly (simultaneous)
+            slew_to_together([
+                (servo3, SERVO_3_OPEN),
+                (servo7, SERVO_7_OPEN),
+            ])
             print("Flaps open")
             time.sleep(1)
 

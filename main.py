@@ -63,7 +63,7 @@ def main():
 
                 # c) Dump it
                 open_trapdoor()
-                time.sleep(3)
+                time.sleep(1)
                 close_trapdoor()
 
                 # d) Return home using real homing routine

@@ -3,6 +3,7 @@
 servo_control.py
 
 Module for trapdoor servo logic using a PCA9685 + SG90 servos.
+Flap mapping: OPEN = 0°, CLOSED = 90° (before any per-channel inversion).
 """
 
 import board

@@ -35,8 +35,8 @@ POLLING_INTERVAL       = 0.5  # Seconds between sensor readings
 # Control Parameters
 # ----------------------------
 STEPPER_STEPS_PER_REV = 200    # Steps per revolution
-SERVO_OPEN_ANGLE      = 90     # Servo open position
-SERVO_CLOSED_ANGLE    = 0      # Servo closed position
+SERVO_OPEN_ANGLE      = 0     # Servo open position
+SERVO_CLOSED_ANGLE    = 90      # Servo closed position
 
 # Which PCA9685 channels are your trapdoor servos?
 TRAPDOOR_SERVOS = [3, 7]

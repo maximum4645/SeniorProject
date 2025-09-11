@@ -34,19 +34,24 @@ POLLING_INTERVAL       = 0.5  # Seconds between sensor readings
 # ----------------------------
 # Control Parameters
 # ----------------------------
-STEPPER_STEPS_PER_REV = 200    # Steps per revolution
-SERVO_OPEN_ANGLE      = 0     # Servo open position
-SERVO_CLOSED_ANGLE    = 90      # Servo closed position
+STEPPER_STEPS_PER_REV = 200   # Steps per revolution
 
-# Which PCA9685 channels are your trapdoor servos?
-TRAPDOOR_SERVOS = [3, 7]
+# === Trapdoor servo channels (match test_servo_control_3.py) ===
+TRAPDOOR_LEFT_CHANNEL  = 15   # servo_left
+TRAPDOOR_RIGHT_CHANNEL = 0    # servo_right
+LOCK_SERVO_CHANNEL     = 8    # servo_lock
 
-# If a servo is mounted “backwards,” invert its angle:
-# angle_to_set = 180 - base_angle
-SERVO_INVERT = {
-    3: False,
-    7: False
-}
+# Keep this list for any code that iterates both flaps
+TRAPDOOR_SERVOS = [TRAPDOOR_LEFT_CHANNEL, TRAPDOOR_RIGHT_CHANNEL]
+
+# === Exact angles from test_servo_control_3.py ===
+LEFT_UP      = 110
+LEFT_DOWN    = 0
+RIGHT_UP     = 0
+RIGHT_DOWN   = 110
+UNLOCK_ANGLE = 120
+LOCK_ANGLE   = 0
+
 # ----------------------------
 # Camera Settings
 # ----------------------------

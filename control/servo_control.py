@@ -3,7 +3,7 @@
 servo_control.py
 
 Module for trapdoor servo logic using a PCA9685 + SG90 servos.
-Flap mapping: OPEN = 0°, CLOSED = 90° (before any per-channel inversion).
+Wraps the exact timing and angles from test_servo_control_3.py.
 """
 
 import board
@@ -13,45 +13,61 @@ from adafruit_pca9685 import PCA9685
 from adafruit_motor import servo
 
 from config import (
-    TRAPDOOR_SERVOS,
-    SERVO_OPEN_ANGLE,
-    SERVO_CLOSED_ANGLE,
-    SERVO_INVERT,
+    TRAPDOOR_LEFT_CHANNEL,
+    TRAPDOOR_RIGHT_CHANNEL,
+    LOCK_SERVO_CHANNEL,
+    LEFT_UP,
+    LEFT_DOWN,
+    RIGHT_UP,
+    RIGHT_DOWN,
+    UNLOCK_ANGLE,
+    LOCK_ANGLE,
 )
 
-# Module‐level PCA and servo objects
+# Module‐level PCA and servo objects (same naming as the test)
 _pca = None
-_servos = {}
+servo_left = None
+servo_right = None
+servo_lock = None
 
 def init_servo():
     """Initialize the PCA9685 board and create Servo objects."""
-    global _pca, _servos
+    global _pca, servo_left, servo_right, servo_lock
     i2c = busio.I2C(board.SCL, board.SDA)
     _pca = PCA9685(i2c)
-    _pca.frequency = 50
-    for ch in TRAPDOOR_SERVOS:
-        _servos[ch] = servo.Servo(
-            _pca.channels[ch],
-            min_pulse=500,
-            max_pulse=2400
-        )
+    _pca.frequency = 50  # SG90s use ~50 Hz
 
-def _apply_angle(ch, base_angle):
-    """Invert angle if needed and command the servo."""
-    angle = 180 - base_angle if SERVO_INVERT.get(ch, False) else base_angle
-    _servos[ch].angle = angle
-    # small delay ensures servo has time to move
-    time.sleep(0.2)
+    servo_left  = servo.Servo(_pca.channels[TRAPDOOR_LEFT_CHANNEL],  min_pulse=500, max_pulse=2400)
+    servo_right = servo.Servo(_pca.channels[TRAPDOOR_RIGHT_CHANNEL], min_pulse=500, max_pulse=2400)
+    servo_lock  = servo.Servo(_pca.channels[LOCK_SERVO_CHANNEL],     min_pulse=500, max_pulse=2400)
 
 def open_trapdoor():
-    """Move both servos to the configured open angle."""
-    for ch in TRAPDOOR_SERVOS:
-        _apply_angle(ch, SERVO_OPEN_ANGLE)
+
+    print("Opening flaps...")
+    time.sleep(1)
+    servo_left.angle  = LEFT_UP
+    servo_right.angle = RIGHT_UP
+    time.sleep(1)
+    servo_lock.angle  = UNLOCK_ANGLE
+    time.sleep(1)
+    servo_left.angle  = LEFT_DOWN
+    servo_right.angle = RIGHT_DOWN
+    print("Flaps OPENED")
+    time.sleep(2)
 
 def close_trapdoor():
-    """Move both servos to the configured closed angle."""
-    for ch in TRAPDOOR_SERVOS:
-        _apply_angle(ch, SERVO_CLOSED_ANGLE)
+
+    print("Closing flaps...")
+    time.sleep(1)
+    servo_left.angle  = LEFT_UP
+    servo_right.angle = RIGHT_UP
+    time.sleep(1)
+    servo_lock.angle  = LOCK_ANGLE
+    time.sleep(1)
+    servo_left.angle  = LEFT_DOWN
+    servo_right.angle = RIGHT_DOWN
+    print("Flaps CLOSED")
+    time.sleep(2)
 
 def cleanup_servo():
     """Deinitialize the PCA9685 to stop sending PWM."""

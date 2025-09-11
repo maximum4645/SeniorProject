@@ -39,6 +39,9 @@ def main():
     print("\n[MAIN] Homing startup…")
     home_stepper()
 
+    print("\n[MAIN] Closing trapdoor")
+    close_trapdoor()
+
     model = load_model()
     print("\n[MAIN] Running loop…")
     try:

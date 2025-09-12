@@ -24,6 +24,9 @@ ULTRASONIC_ECHO_PIN    = 24  # Physical pin 18
 STEPPER_STEP_PIN = 6   # Physical pin 31
 STEPPER_DIR_PIN  = 5   # Physical pin 29
 
+# IR Break-beam Sensor
+BREAKBEAM_PIN = 23  # BCM numbering
+
 # ----------------------------
 # Sensor Thresholds & Timing (in appropriate units)
 # ----------------------------

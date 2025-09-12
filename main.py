@@ -3,12 +3,15 @@ import time
 import random
 
 from config import (
-    DETECTION_THRESHOLD_CM,
-    CLEARANCE_THRESHOLD_CM,
     POLLING_INTERVAL,
     CLASS_TO_CHANNEL,
 )
-from sensors.ultrasonic_sensor import init_ultrasonic, read_distance, cleanup as cleanup_ultrasonic
+from sensors.ir_breakbeam import (
+    init_ir_breakbeam,
+    is_beam_broken,
+    is_beam_intact,
+    cleanup as cleanup_breakbeam,
+)
 from control.servo_control import init_servo, open_trapdoor, close_trapdoor, cleanup_servo
 from control.stepper_control import init_stepper, home_stepper, move_to_channel, cleanup_all
 
@@ -31,7 +34,7 @@ def classify_image(model, img):
 
 def main():
     # Initialize real modules
-    init_ultrasonic()
+    init_ir_breakbeam()
     init_servo()
     init_camera()
     init_stepper()
@@ -43,13 +46,11 @@ def main():
     close_trapdoor()
 
     model = load_model()
-    print("\n[MAIN] Running loop…")
+    print("\n[MAIN] Running loop… (polling break-beam)")
     try:
         while True:
-            dist = read_distance()
-            print(f"[ultra] {dist:.1f} cm")
-            if dist < DETECTION_THRESHOLD_CM:
-                print("[MAIN] Detected! Running full cycle…")
+            if is_beam_broken():
+                print("[MAIN] Detected (beam broken)! Running full cycle…")
 
                 # a) Grab & classify
                 img = capture_image_to_memory()
@@ -70,10 +71,10 @@ def main():
                 print("[MAIN] Returning home via stepper…")
                 home_stepper()
 
-                # e) Wait until cleared
+                # e) Wait until beam intact again
                 print("[MAIN] Cycle done; waiting clearance…")
-                while read_distance() < CLEARANCE_THRESHOLD_CM:
-                    print(f"[wait] {read_distance():.1f} cm"); time.sleep(POLLING_INTERVAL)
+                while not is_beam_intact():
+                    print("[wait] beam still broken…"); time.sleep(POLLING_INTERVAL)
                 print("[MAIN] Cleared.")
 
             time.sleep(POLLING_INTERVAL)
@@ -81,7 +82,7 @@ def main():
     except KeyboardInterrupt:
         print("\n[MAIN] Stopping…")
     finally:
-        cleanup_ultrasonic()
+        cleanup_breakbeam()
         cleanup_servo()
         cleanup_all()
 

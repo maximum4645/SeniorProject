@@ -16,22 +16,12 @@ I2C_SCL_PIN = 3    # Physical pin 5
 LIMIT_SWITCH_PIN_LEFT = 17  # Physical pin 11
 LIMIT_SWITCH_PIN_RIGHT = 27 # Physical pin 13
 
-# Ultrasonic Sensor
-ULTRASONIC_TRIGGER_PIN = 23  # Physical pin 16
-ULTRASONIC_ECHO_PIN    = 24  # Physical pin 18
-
 # DRV8825 Stepper Motor Driver
 STEPPER_STEP_PIN = 6   # Physical pin 31
 STEPPER_DIR_PIN  = 5   # Physical pin 29
 
 # IR Break-beam Sensor
 BREAKBEAM_PIN = 23  # BCM numbering
-
-# ----------------------------
-# Sensor Thresholds & Timing (in appropriate units)
-# ----------------------------
-DETECTION_THRESHOLD_CM = 20   # Was DISTANCE_THRESHOLD; renamed for clarity
-CLEARANCE_THRESHOLD_CM = 15   # New: waiting‐for‐clearance threshold
 POLLING_INTERVAL       = 0.5  # Seconds between sensor readings
 
 # ----------------------------
@@ -64,10 +54,10 @@ CAMERA_RESOLUTION = (640, 480)
 # Class-to-channel mapping
 # ----------------------------
 CLASS_TO_CHANNEL = {
-    'plastic': 1,
-    'metal':   2,
+    'general': 1,
+    'plastic':   2,
     'paper':   3,
-    'organic': 4
+    'aluminium': 4
 }
 
 # ----------------------------

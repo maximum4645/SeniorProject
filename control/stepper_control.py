@@ -138,7 +138,7 @@ def move_to_channel(channel):
         raise RuntimeError("Call init_stepper() first.")
 
     # Constants:
-    spacing_cm        = 10          # channel spacing
+    spacing_cm        = 20          # channel spacing
     belt_pitch_mm     = 2           # GT2 belt pitch
     pulley_teeth      = 20          # count your pulley’s teeth!
     travel_per_rev_cm = (pulley_teeth * belt_pitch_mm) / 10  # mm→cm

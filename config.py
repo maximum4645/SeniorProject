@@ -22,7 +22,7 @@ STEPPER_DIR_PIN  = 5   # Physical pin 29
 
 # IR Break-beam Sensor
 BREAKBEAM_PIN = 23  # BCM numbering
-POLLING_INTERVAL       = 0.5  # Seconds between sensor readings
+POLLING_INTERVAL = 0.5  # Seconds between sensor readings
 
 # ----------------------------
 # Control Parameters

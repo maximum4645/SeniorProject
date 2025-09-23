@@ -46,36 +46,34 @@ def main():
     close_trapdoor()
 
     model = load_model()
-    print("\n[MAIN] Running loop… (polling break-beam)")
+    print("\n[MAIN] Manual mode ready (type 1-4 or q to quit).")
     try:
         while True:
-            if is_beam_broken():
-                print("[MAIN] Detected (beam broken)! Running full cycle…")
+            s = input("Channel (1-4) or q: ").strip().lower()
+            if s in ("q", "quit", "exit"):
+                break
+            if s not in ("1", "2", "3", "4"):
+                print("[WARN] Invalid input. Try 1,2,3,4 or q.")
+                continue
 
-                # a) Grab & classify
-                img = capture_image_to_memory()
-                cls = classify_image(model, img)
-                channel = CLASS_TO_CHANNEL[cls]
+            channel = int(s)
+            print(f"[MAIN] Requested channel {channel}. Running cycle…")
 
-                # b) Slide to the right bin
-                time.sleep(1)
-                move_to_channel(channel)
+            # b) Slide to the right bin
+            time.sleep(1)
+            move_to_channel(channel)
 
-                # c) Dump it
-                open_trapdoor()
-                time.sleep(1)
-                close_trapdoor()
+            # c) Dump it
+            open_trapdoor()
+            time.sleep(1)
+            close_trapdoor()
 
-                # d) Return home using real homing routine
-                print("[MAIN] Returning home...")
-                move_back(channel)
-                home_stepper()
+            # d) Return home using real homing routine
+            print("[MAIN] Returning home...")
+            move_back(channel)
+            home_stepper()
 
-                # e) Wait until beam intact again
-                print("[MAIN] Cycle done; waiting clearance…")
-                while not is_beam_intact():
-                    print("[wait] beam still broken…"); time.sleep(POLLING_INTERVAL)
-                print("[MAIN] Waiting for next detection… (polling break-beam)")
+            print("[MAIN] Cycle complete.\n")
 
             time.sleep(POLLING_INTERVAL)
 

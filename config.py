@@ -28,6 +28,10 @@ POLLING_INTERVAL = 0.5  # Seconds between sensor readings
 # Control Parameters
 # ----------------------------
 STEPPER_STEPS_PER_REV = 200   # Steps per revolution
+CHANNEL_SPACING_CM     = 20    # spacing between waste channels
+BELT_PITCH_MM          = 2     # GT2 belt pitch
+PULLEY_TEETH           = 20    # pulley teeth count
+TRAVEL_PER_REV_CM      = (PULLEY_TEETH * BELT_PITCH_MM) / 10  # mm to cm
 
 # === Trapdoor servo channels (match test_servo_control_3.py) ===
 TRAPDOOR_LEFT_CHANNEL  = 15   # servo_left

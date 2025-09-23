@@ -67,7 +67,7 @@ class StepperControl:
 
         for _ in range(count):
 
-	    # Safety: abort if the switch is pressed
+            # Safety: abort if the switch is pressed
             if direction == "forward":
                 if self.limit_switch_pin_right is not None and GPIO.input(self.limit_switch_pin_right) == GPIO.LOW:
                     print("[SAFETY] Right switch triggered → stopping forward motion.")
@@ -131,26 +131,28 @@ def home_stepper():
 
 
 def move_to_channel(channel):
-    """
-    Move from home to channel N (1-indexed), spacing=10 cm, GT2 belt & 20T pulley.
-    """
     if _stepper is None:
         raise RuntimeError("Call init_stepper() first.")
 
-    # Constants:
-    spacing_cm        = 20          # channel spacing
-    belt_pitch_mm     = 2           # GT2 belt pitch
-    pulley_teeth      = 20          # count your pulley’s teeth!
-    travel_per_rev_cm = (pulley_teeth * belt_pitch_mm) / 10  # mm→cm
-
     # Compute target:
-    distance_cm  = spacing_cm * (channel - 1)
-    revs_needed  = distance_cm / travel_per_rev_cm
+    distance_cm  = config.CHANNEL_SPACING_CM * (channel - 1)
+    revs_needed  = distance_cm / config.TRAVEL_PER_REV_CM
     target_steps = int(round(revs_needed * config.STEPPER_STEPS_PER_REV))
 
-    print(f"[STEP] channel {channel}: {distance_cm} cm → "
-          f"{revs_needed:.2f} rev → {target_steps} steps")
+    print(f"[STEP] channel {channel}: {distance_cm} cm")
     _stepper.move_steps(target_steps)
+
+
+def move_back(channel):
+    if _stepper is None:
+        raise RuntimeError("Call init_stepper() first.")
+
+    distance_cm = max(0, config.CHANNEL_SPACING_CM * (channel - 1) - 5) # 5 cm for homing (slower)
+    revs_needed  = distance_cm / config.TRAVEL_PER_REV_CM
+    target_steps = int(round(revs_needed * config.STEPPER_STEPS_PER_REV))
+
+    print(f"[STEP] Back from channel {channel}: {distance_cm} cm")
+    _stepper.move_steps(-target_steps)
 
 
 def cleanup_all():

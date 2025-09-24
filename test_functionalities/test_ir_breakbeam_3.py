@@ -14,12 +14,6 @@ and go back to READY.
 import time
 import threading
 import RPi.GPIO as GPIO
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
-try: GPIO.remove_event_detect(23)
-except Exception: pass
-try: GPIO.cleanup(23)
-except Exception: pass
 
 # --- Adjust if needed ---
 BREAKBEAM_PIN = 23
@@ -53,18 +47,18 @@ def main():
         while True:
             # condition1 (event latched) AND condition2 (we are ready)
             if ready and _break_event.is_set():
-                print("[TEST] Beam broken !")
+                print("[TEST] Beam broken (event).")
                 ready = False  # enter 'sorting' (ignore further breaks)
 
                 # Wait for clearance before going READY again
-                print("[TEST] Waiting for clearance...")
+                print("[TEST] Waiting for clearance (beam intact)...")
                 while not is_beam_intact():
                     time.sleep(POLLING_INTERVAL)
 
                 # Drop any edges that may have occurred during 'sorting'
                 clear_break_event()
                 ready = True
-                print("[TEST] Cleared - READY again")
+                print("[TEST] Cleared -> READY (armed).")
 
             time.sleep(POLLING_INTERVAL)
 

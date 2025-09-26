@@ -190,7 +190,7 @@ def main():
         )
 
         print("\n--- TEST: Move Forward ---")
-        res = stepper.move_steps(800, step_delay=0.001)
+        res = stepper.move_steps(1000, step_delay=0.0008)
         if res["status"] == "stopped":
             print("[ABORT] Limit triggered during forward move.")
             return
@@ -198,7 +198,7 @@ def main():
         time.sleep(2)
 
         print("\n--- TEST: Move Backward ---")
-        res = stepper.move_steps(-800, step_delay=0.001)
+        res = stepper.move_steps(-1000, step_delay=0.0008)
         if res["status"] == "stopped":
             print("[ABORT] Limit triggered during backward move.")
             return

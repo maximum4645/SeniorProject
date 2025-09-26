@@ -97,7 +97,7 @@ class StepperControl:
         self._cbs.clear()
 
     # ---------- public API ----------
-    def move_steps(self, steps, step_delay=0.0005):
+    def move_steps(self, steps, step_delay):
         """
         Move by |steps| pulses at frequency = 1/(2*step_delay).
         DIR LOW for forward (steps>=0), HIGH for backward (steps<0).
@@ -106,25 +106,22 @@ class StepperControl:
         if steps == 0:
             return {"status": "ok", "which": None}
 
-        direction = "forward" if steps >= 0 else "backward"
         self.pi.write(self.dir_pin, 0 if steps >= 0 else 1)
 
-        # Safety callback on the relevant boundary for the chosen direction
-        stop_pin = self.limit_switch_pin_right if steps >= 0 else self.limit_switch_pin_left
-        stop_label = "Right" if steps >= 0 else "Left"
-        self._install_callbacks([(stop_pin, stop_label)])
+        # NEW: monitor BOTH limits regardless of direction (wiring-agnostic)
+        self._install_callbacks([
+            (self.limit_switch_pin_left,  "Left"),
+            (self.limit_switch_pin_right, "Right"),
+        ])
 
         wid, us = self._build_period_wave(step_delay)
         count = abs(steps)
-        freq_exact = 1_000_000.0 / (2.0 * us)  # compute from integer µs actually used
-        print(f"[MOVE] {direction} {count} steps @ {freq_exact:.0f} Hz")
+        freq_exact = 1_000_000.0 / (2.0 * us)
+        print(f"[MOVE] {'forward' if steps >= 0 else 'backward'} {count} steps @ {freq_exact:.0f} Hz")
 
         try:
-            # Repeat the single-period wave 'count' times
             chain = [255, 0, wid, 255, 1, count & 0xFF, (count >> 8) & 0xFF]
             self.pi.wave_chain(chain)
-
-            # Wait until complete or a callback stops it
             while self.pi.wave_tx_busy():
                 time.sleep(self._monitor_sleep_s)
         finally:
@@ -136,7 +133,7 @@ class StepperControl:
             return {"status": "stopped", "which": self._stopped_which}
         return {"status": "ok", "which": None}
 
-    def home(self, step_delay=0.005):
+    def home(self, step_delay):
         """
         Home by stepping backward continuously until ANY switch triggers.
         Uses wave_send_repeat and async callbacks on both switches.
@@ -193,19 +190,21 @@ def main():
         )
 
         print("\n--- TEST: Move Forward ---")
-        res = stepper.move_steps(400, step_delay=0.001)
+        res = stepper.move_steps(800, step_delay=0.001)
         if res["status"] == "stopped":
             print("[ABORT] Limit triggered during forward move.")
             return
 
+        time.sleep(2)
+
         print("\n--- TEST: Move Backward ---")
-        res = stepper.move_steps(-400, step_delay=0.001)
+        res = stepper.move_steps(-800, step_delay=0.001)
         if res["status"] == "stopped":
             print("[ABORT] Limit triggered during backward move.")
             return
 
         print("\n--- TEST: Homing ---")
-        stepper.home(step_delay=0.005)
+        stepper.home(step_delay=0.003)
 
     except KeyboardInterrupt:
         print("\n[INTERRUPT] User aborted test.")

@@ -132,6 +132,15 @@ class _StepperControlPigpio:
             return {"status": "ok", "which": None}
 
         forward = steps >= 0
+
+        # Refuse to move into an already-active limit
+        if forward and self.limit_switch_pin_right is not None and self.pi.read(self.limit_switch_pin_right) == 0:
+            print("[SAFETY] Right switch already active; refusing forward move.")
+            return {"status": "stopped", "which": "Right"}
+        if (not forward) and self.limit_switch_pin_left is not None and self.pi.read(self.limit_switch_pin_left) == 0:
+            print("[SAFETY] Left switch already active; refusing backward move.")
+            return {"status": "stopped", "which": "Left"}
+
         self._set_dir(forward)
 
         self._install_callbacks()
@@ -170,6 +179,13 @@ class _StepperControlPigpio:
         Home by stepping backward (toward the left) continuously until ANY switch triggers.
         Uses wave_send_repeat and async callbacks on both switches.
         """
+        # If any limit is already active, we're already "home"—do not move
+        for pin, label in ((self.limit_switch_pin_left, "Left"),
+                        (self.limit_switch_pin_right, "Right")):
+            if pin is not None and self.pi.read(pin) == 0:  # active-LOW
+                print(f"[HOME] {label} switch already active; homing complete.")
+                return
+
         print("[HOME] Starting homing (DIR→HIGH/backward by convention)")
         self._set_dir(forward=False)
 

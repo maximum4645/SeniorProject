@@ -41,7 +41,7 @@ PIGPIO_GLITCH_US         = 2000   # Debounce for mechanical switches (microsecon
 PIGPIO_MONITOR_SLEEP_S   = 0.001  # Sleep while monitoring wave playback
 
 # Channel spacing and mechanics
-CHANNEL_SPACING_CM     = 20    # spacing between waste channels
+CHANNEL_SPACING_CM     = 19    # spacing between waste channels
 BELT_PITCH_MM          = 2     # GT2 belt pitch
 PULLEY_TEETH           = 20    # pulley teeth count
 TRAVEL_PER_REV_CM      = (PULLEY_TEETH * BELT_PITCH_MM) / 10  # mm to cm

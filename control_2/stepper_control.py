@@ -156,6 +156,12 @@ class _StepperControlPigpio:
             while self.pi.wave_tx_busy():
                 time.sleep(self._monitor_sleep_s)
         finally:
+            # NEW: force-stop any active transmission even on Ctrl+C
+            try:
+                if self.pi.wave_tx_busy():
+                    self.pi.wave_tx_stop()
+            except Exception:
+                pass
             self._clear_callbacks()
             try:
                 self.pi.wave_delete(wid)
@@ -182,6 +188,12 @@ class _StepperControlPigpio:
             while self.pi.wave_tx_busy():
                 time.sleep(self._monitor_sleep_s)
         finally:
+            # NEW: stop repeat wave if still running (e.g., Ctrl+C before a switch triggers)
+            try:
+                if self.pi.wave_tx_busy():
+                    self.pi.wave_tx_stop()
+            except Exception:
+                pass
             self._clear_callbacks()
             try:
                 self.pi.wave_delete(wid)

@@ -34,7 +34,7 @@ STEPPER_DIR_POLARITY   = +1   # +1 keeps DIR LOW=forward(right), HIGH=backward(l
 
 # Motion timing (seconds)
 STEPPER_STEP_DELAY_S = 0.0008   # Travel speed half-period (HIGH or LOW duration)
-HOME_STEP_DELAY_S    = 0.001    # Safer/slower homing
+HOME_STEP_DELAY_S    = 0.005    # Safer/slower homing
 
 # Pigpio filters/loop timing
 PIGPIO_GLITCH_US         = 2000   # Debounce for mechanical switches (microseconds)

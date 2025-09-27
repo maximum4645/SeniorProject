@@ -10,15 +10,7 @@ Wrapper for stepper motor control (pigpio + DRV8825 + NEMA17).
 
 import time
 import pigpio
-import config
-
-# ------------ internal defaults (used if not present in config) ------------
-_DEF_STEPPER_STEP_DELAY_S   = 0.0008   # travel speed (half-period per HIGH/LOW)
-_DEF_HOME_STEP_DELAY_S      = 0.001    # slower & safer for homing
-_DEF_PIGPIO_GLITCH_US       = 2000     # debounce for mechanical switches
-_DEF_MONITOR_SLEEP_S        = 0.001    # polling sleep while a wave is playing
-_DEF_MICROSTEPPING          = 1        # assume full-step unless configured
-_DEF_DIR_POLARITY           = +1       # +1 keeps DIR LOW=forward (right), HIGH=backward (left)
+import config_2 as config   # <-- changed to use config_2
 
 # ------------ pigpio-based controller class ------------
 class _StepperControlPigpio:
@@ -28,9 +20,9 @@ class _StepperControlPigpio:
                  enable_pin=None,
                  limit_switch_pin_left=None,
                  limit_switch_pin_right=None,
-                 glitch_us=_DEF_PIGPIO_GLITCH_US,
-                 monitor_sleep_s=_DEF_MONITOR_SLEEP_S,
-                 dir_polarity=_DEF_DIR_POLARITY):
+                 glitch_us=2000,
+                 monitor_sleep_s=0.001,
+                 dir_polarity=+1):
         self.step_pin = step_pin
         self.dir_pin = dir_pin
         self.enable_pin = enable_pin
@@ -156,7 +148,7 @@ class _StepperControlPigpio:
             while self.pi.wave_tx_busy():
                 time.sleep(self._monitor_sleep_s)
         finally:
-            # NEW: force-stop any active transmission even on Ctrl+C
+            # Force-stop any active transmission even on Ctrl+C
             try:
                 if self.pi.wave_tx_busy():
                     self.pi.wave_tx_stop()
@@ -188,7 +180,7 @@ class _StepperControlPigpio:
             while self.pi.wave_tx_busy():
                 time.sleep(self._monitor_sleep_s)
         finally:
-            # NEW: stop repeat wave if still running (e.g., Ctrl+C before a switch triggers)
+            # Stop repeat wave if still running (e.g., Ctrl+C before a switch triggers)
             try:
                 if self.pi.wave_tx_busy():
                     self.pi.wave_tx_stop()
@@ -221,7 +213,7 @@ class _StepperControlPigpio:
 _stepper = None
 
 def _effective_steps_per_rev():
-    micro = getattr(config, "MICROSTEPPING", _DEF_MICROSTEPPING)
+    micro = getattr(config, "MICROSTEPPING", 1)
     base = getattr(config, "STEPPER_STEPS_PER_REV", 200)
     try:
         return int(base) * int(micro)
@@ -254,9 +246,9 @@ def init_stepper():
     l_pin    = getattr(config, "LIMIT_SWITCH_PIN_LEFT", None)
     r_pin    = getattr(config, "LIMIT_SWITCH_PIN_RIGHT", None)
 
-    glitch_us = getattr(config, "PIGPIO_GLITCH_US", _DEF_PIGPIO_GLITCH_US)
-    monitor_s = getattr(config, "PIGPIO_MONITOR_SLEEP_S", _DEF_MONITOR_SLEEP_S)
-    dir_pol   = getattr(config, "STEPPER_DIR_POLARITY", _DEF_DIR_POLARITY)
+    glitch_us = getattr(config, "PIGPIO_GLITCH_US", 2000)
+    monitor_s = getattr(config, "PIGPIO_MONITOR_SLEEP_S", 0.001)
+    dir_pol   = getattr(config, "STEPPER_DIR_POLARITY", +1)
 
     _stepper = _StepperControlPigpio(
         step_pin=step_pin,
@@ -274,7 +266,7 @@ def home_stepper():
     """Perform homing routine using async limit callbacks."""
     if _stepper is None:
         raise RuntimeError("Stepper not initialized. Call init_stepper() first.")
-    step_delay = getattr(config, "HOME_STEP_DELAY_S", _DEF_HOME_STEP_DELAY_S)
+    step_delay = getattr(config, "HOME_STEP_DELAY_S", 0.001)
     _stepper.home(step_delay=step_delay)
 
 def move_to_channel(channel: int):
@@ -287,7 +279,7 @@ def move_to_channel(channel: int):
     spacing = getattr(config, "CHANNEL_SPACING_CM", 20)
     distance_cm = spacing * max(0, int(channel) - 1)
     steps = _steps_for_distance_cm(distance_cm)
-    step_delay = getattr(config, "STEPPER_STEP_DELAY_S", _DEF_STEPPER_STEP_DELAY_S)
+    step_delay = getattr(config, "STEPPER_STEP_DELAY_S", 0.0008)
 
     # Frequency info (approx) for logging
     half_us = max(2, int(round(step_delay * 1_000_000)))
@@ -306,7 +298,7 @@ def move_back(channel: int):
     spacing = getattr(config, "CHANNEL_SPACING_CM", 20)
     distance_cm = max(0.0, spacing * max(0, int(channel) - 1) - 5.0)  # leave ~5 cm for clean homing
     steps = _steps_for_distance_cm(distance_cm)
-    step_delay = getattr(config, "STEPPER_STEP_DELAY_S", _DEF_STEPPER_STEP_DELAY_S)
+    step_delay = getattr(config, "STEPPER_STEP_DELAY_S", 0.0008)
 
     half_us = max(2, int(round(step_delay * 1_000_000)))
     freq_hz = 1_000_000.0 / (2.0 * half_us)

@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 import time
 import random
+import threading
 
 from config import (
-    POLLING_INTERVAL,
     CLASS_TO_CHANNEL,
 )
 from sensor_2.ir_breakbeam import (
     init_ir_breakbeam,
     is_beam_broken,
     is_beam_intact,
+    attach_callback,
+    detach_callback,
     cleanup as cleanup_breakbeam,
 )
 from control.servo_control import init_servo, open_trapdoor, close_trapdoor, cleanup_servo
@@ -46,45 +48,66 @@ def main():
     close_trapdoor()
 
     model = load_model()
-    print("\n[MAIN] Running loop… (polling break-beam)")
+
+    # --- interrupt-driven trigger (simple) ---
+    trigger_evt = threading.Event()
+    def _ir_on_change(level_str, tick):
+        if level_str == "broken":
+            trigger_evt.set()
+
+    attach_callback(_ir_on_change)
+
+    print("\n[MAIN] Ready. Waiting for object…")
     try:
         while True:
-            if is_beam_broken():
-                print("[MAIN] Detected (beam broken)! Running full cycle…")
+            # Wait for first beam break
+            trigger_evt.clear()
+            trigger_evt.wait()
+            time.sleep(0.02)  # tiny confirm delay
+            if not is_beam_broken():
+                continue
 
-                # a) Grab & classify
-                img = capture_image_to_memory()
-                cls = classify_image(model, img)
-                channel = CLASS_TO_CHANNEL[cls]
+            # Ignore further edges until the cycle completes
+            detach_callback()
 
-                # b) Slide to the right bin
-                time.sleep(1)
-                move_to_channel(channel)
+            print("[MAIN] Detected (beam broken)! Running full cycle…")
 
-                # c) Dump it
-                open_trapdoor()
-                time.sleep(1)
-                close_trapdoor()
+            # a) Grab & classify
+            img = capture_image_to_memory()
+            cls = classify_image(model, img)
+            channel = CLASS_TO_CHANNEL[cls]
 
-                # d) Return home using real homing routine
-                print("[MAIN] Returning home...")
-                move_back(channel)
-                home_stepper()
+            # b) Slide to the right bin
+            time.sleep(1)
+            move_to_channel(channel)
 
-                # e) Wait until beam intact again
-                print("[MAIN] Cycle done; waiting clearance…")
-                while not is_beam_intact():
-                    print("[wait] beam still broken…"); time.sleep(POLLING_INTERVAL)
-                print("[MAIN] Waiting for next detection… (polling break-beam)")
+            # c) Dump it
+            open_trapdoor()
+            time.sleep(1)
+            close_trapdoor()
 
-            time.sleep(POLLING_INTERVAL)
+            # d) Return home using real homing routine
+            print("[MAIN] Returning home...")
+            move_back(channel)
+            home_stepper()
+
+            # e) Wait until beam intact again
+            print("[MAIN] Cycle done; waiting clearance…")
+            while not is_beam_intact():
+                print("[wait] beam still broken…"); time.sleep(0.5)
+            print("[MAIN] Waiting for next detection…")
+
+            # Re-arm callback for the next object
+            attach_callback(_ir_on_change)
 
     except KeyboardInterrupt:
         print("\n[MAIN] Stopping…")
     finally:
+        detach_callback()
         cleanup_breakbeam()
         cleanup_servo()
         cleanup_all()
 
 if __name__ == "__main__":
     main()
+

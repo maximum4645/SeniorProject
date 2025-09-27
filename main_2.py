@@ -63,7 +63,7 @@ def main():
             # Wait for first beam break
             trigger_evt.clear()
             trigger_evt.wait()
-            time.sleep(0.02)  # tiny confirm delay
+            time.sleep(0.01)  # tiny confirm delay
             if not is_beam_broken():
                 continue
 

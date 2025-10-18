@@ -19,10 +19,9 @@
     <form method="POST" action="/capture">
         <label for="image_class">Select Class:</label>
         <select name="image_class" id="image_class">
-            <option value="cardboard">Cardboard</option>
-            <option value="plastic">Plastic</option>
-            <option value="metal">Metal</option>
-            <option value="organic">Organic</option>
+          {% for cls in image_classes %}
+            <option value="{{ cls }}">{{ cls|capitalize }}</option>
+          {% endfor %}
         </select>
         <button type="submit">Capture</button>
     </form>

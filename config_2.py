@@ -71,11 +71,12 @@ CAMERA_RESOLUTION = (640, 480)
 # Class-to-channel mapping
 # ----------------------------
 CLASS_TO_CHANNEL = {
-    'general':   1,
-    'plastic':   2,
-    'paper':     3,
-    'aluminium': 4
+    'empty': 1,
+    'cloud': 2,
+    'moon': 3,
+    'ball': 4
 }
+IMAGE_CLASSES = ['empty', 'cloud', 'moon', 'ball']
 
 # ----------------------------
 # Data Collection / Image Save Directory

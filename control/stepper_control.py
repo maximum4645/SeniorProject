@@ -11,7 +11,7 @@ Wrapper for stepper motor control (pigpio + DRV8825 + NEMA17).
 
 import time
 import pigpio
-import config as config   # uses config_2.py
+import config
 
 
 # ------------ pigpio-based controller class ------------
@@ -224,7 +224,6 @@ _stepper = None
 def _steps_for_distance_cm(distance_cm: float) -> int:
     """
     Convert linear travel (cm) to step count, using TRAVEL_PER_REV_CM and STEPPER_STEPS_PER_REV
-    defined in config_2.py.
     """
     steps_per_rev = getattr(config, "STEPPER_STEPS_PER_REV", 200)
     travel_per_rev_cm = getattr(config, "TRAVEL_PER_REV_CM", None)
@@ -316,4 +315,3 @@ def cleanup_all():
             _stepper.cleanup()
         finally:
             _stepper = None
-

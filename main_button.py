@@ -6,15 +6,10 @@ from config import (
     POLLING_INTERVAL,
     CLASS_TO_CHANNEL,
 )
-from sensor_2.ir_breakbeam import (
-    init_ir_breakbeam,
-    is_beam_broken,
-    is_beam_intact,
-    cleanup as cleanup_breakbeam,
-)
+from sensors.ir_breakbeam import init_ir_breakbeam, is_beam_broken, is_beam_intact, cleanup as cleanup_breakbeam
+from sensors.button import init_buttons, wait_for_button, cleanup as cleanup_buttons
 from control.servo_control import init_servo, open_trapdoor, close_trapdoor, cleanup_servo
-from control_2.stepper_control import init_stepper, home_stepper, move_to_channel, move_back, cleanup_all
-from sensor_2.button import init_buttons, wait_for_button, cleanup as cleanup_buttons
+from control.stepper_control import init_stepper, home_stepper, move_to_channel, move_back, cleanup_all
 
 # (Camera + classification still stubbed out)
 def init_camera():

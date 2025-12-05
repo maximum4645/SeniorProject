@@ -69,10 +69,10 @@ CAMERA_RESOLUTION = (640, 480)
 # Class-to-channel mapping
 # ----------------------------
 CLASS_TO_CHANNEL = {
-    'empty': 1,
-    'cloud': 2,
-    'moon': 3,
-    'ball': 4
+    'general': 1,
+    'plastic': 2,
+    'paper': 3,
+    'metal': 4
 }
 IMAGE_CLASSES = ['general', 'plastic', 'paper', 'metal']
 

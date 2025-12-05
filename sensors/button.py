@@ -13,7 +13,7 @@ from adafruit_pcf8574 import PCF8574
 
 # Config — adjust to your wiring
 I2C_ADDR = 0x20
-BUTTON_PINS = [0, 1, 2, 3]   # P0..P3 map to buttons 1..4
+BUTTON_PINS = [3, 2, 1, 0]   # P0..P3 map to buttons 1..4
 DEBOUNCE_S = 0.02
 
 # Module state

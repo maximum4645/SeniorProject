@@ -131,7 +131,7 @@ class _StepperControlPigpio:
             print("[SAFETY] Left switch already active; refusing backward move.")
             return {"status": "stopped", "which": "Left"}
 
-        self.pi.write(self.dir_pin, 0 if forward else 1)
+        self.pi.write(self.dir_pin, 1 if forward else 0)
 
         self._install_callbacks()
 
@@ -179,7 +179,7 @@ class _StepperControlPigpio:
                 return
 
         print("[HOME] Starting homing (DIR→HIGH/backward by convention)")
-        self.pi.write(self.dir_pin, 1)
+        self.pi.write(self.dir_pin, 0)
 
         self._install_callbacks()
         wid, us = self._build_period_wave(step_delay)

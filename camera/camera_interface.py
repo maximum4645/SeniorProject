@@ -19,7 +19,7 @@ import re
 import cv2
 from flask import Flask, render_template, Response, request, redirect, flash, url_for
 from camera.camera_capture import initialize, capture_image
-from config_2 import IMAGE_SAVE_DIR, IMAGE_CLASSES
+from config import IMAGE_SAVE_DIR, IMAGE_CLASSES, CAMERA_RESOLUTION
 
 app = Flask(__name__)
 app.secret_key = 'pi'  # Replace with a secure key for production
@@ -42,7 +42,7 @@ def gen_frames():
 @app.route('/')
 def index():
     """Render the main page with the live video stream and capture button."""
-    return render_template('index.html', image_classes=IMAGE_CLASSES)
+    return render_template('index.html', image_classes=IMAGE_CLASSES, camera_resolution=CAMERA_RESOLUTION)
 
 @app.route('/video_feed')
 def video_feed():
@@ -86,4 +86,3 @@ def capture():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
-

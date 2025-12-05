@@ -74,7 +74,7 @@ CLASS_TO_CHANNEL = {
     'moon': 3,
     'ball': 4
 }
-IMAGE_CLASSES = ['empty', 'cloud', 'moon', 'ball']
+IMAGE_CLASSES = ['general', 'plastic', 'paper', 'metal']
 
 # ----------------------------
 # Data Collection / Image Save Directory

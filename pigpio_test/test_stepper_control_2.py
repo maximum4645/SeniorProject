@@ -106,7 +106,7 @@ class StepperControl:
         if steps == 0:
             return {"status": "ok", "which": None}
 
-        self.pi.write(self.dir_pin, 0 if steps >= 0 else 1)
+        self.pi.write(self.dir_pin, 1 if steps >= 0 else 0)
 
         # NEW: monitor BOTH limits regardless of direction (wiring-agnostic)
         self._install_callbacks([
@@ -139,7 +139,7 @@ class StepperControl:
         Uses wave_send_repeat and async callbacks on both switches.
         """
         print("[HOME] Starting homing (DIR→HIGH/backward)")
-        self.pi.write(self.dir_pin, 1)
+        self.pi.write(self.dir_pin, 0)
 
         # Callbacks on both switches (whichever is wired)
         pins = [("Left", self.limit_switch_pin_left), ("Right", self.limit_switch_pin_right)]

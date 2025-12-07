@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Camera Capture</title>
+    <title>Latest Capture</title>
     <style>
         body {
             margin: 0;
@@ -29,9 +29,9 @@
             border-radius: 10px;
             border: 1px solid #2a2f3a;
 
-            /* Center image + text inside the box, stacked vertically */
+            /* same idea as index.html – image box */
             display: flex;
-            flex-direction: column;   /* NEW: stack children vertically */
+            flex-direction: column;
             justify-content: center;
             align-items: center;
         }
@@ -41,12 +41,6 @@
             height: 480px;
             border-radius: 6px;
             border: 1px solid #333;
-        }
-
-        .camera-info {
-            margin-top: 12px;
-            font-size: 16px;
-            color: #9da3b0;
         }
 
         .control-box {
@@ -86,39 +80,54 @@
 </head>
 <body>
 
-<h1>Smart Bin Camera Console</h1>
+<h1>Smart Bin Latest Capture</h1>
 
 <div class="container">
 
-    <!-- Centered Live Video -->
+    <!-- Left: latest image (same box style as live stream) -->
     <div class="video-box">
-        <img src="{{ url_for('video_feed') }}">
-        <p class="camera-info">
-          Camera: {{ camera_resolution[0] }} × {{ camera_resolution[1] }}
-        </p>
+        {% if latest_url %}
+            <img src="{{ latest_url }}" alt="Latest captured image">
+            <p style="margin-top:10px; font-size:18px; color:#9da3b0;">
+                {% if camera_resolution %}
+                    Image: {{ camera_resolution[0] }} × {{ camera_resolution[1] }}
+                {% else %}
+                    Latest captured image
+                {% endif %}
+            </p>
+        {% else %}
+            <p style="font-size:18px; color:#9da3b0;">
+                No images yet. Waiting for the first button press…
+            </p>
+        {% endif %}
     </div>
 
-    <!-- Buttons -->
+    <!-- Right: class label panel (mirrors “Capture into class”) -->
     <div class="control-box">
-        <h3>Capture into class</h3>
+        <h3>Class label</h3>
 
         <div class="buttons">
-            {% for cls in image_classes %}
-            <form method="POST" action="{{ url_for('capture') }}">
-                <input type="hidden" name="image_class" value="{{ cls }}">
-                <button type="submit">{{ cls|capitalize }}</button>
-            </form>
-            {% endfor %}
+            {% if latest_class %}
+                <!-- Just show the label as a disabled button to match the look -->
+                <button type="button" disabled>{{ latest_class|capitalize }}</button>
+            {% else %}
+                <p style="font-size:14px; color:#9da3b0;">
+                    No image available yet.
+                </p>
+            {% endif %}
         </div>
 
-        <ul class="messages">
-        {% for message in get_flashed_messages() %}
-            <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
+        <div class="messages">
+            {% if latest_time %}
+                <p>Last updated: {{ latest_time }}</p>
+            {% else %}
+                <p>Waiting for first capture…</p>
+            {% endif %}
+        </div>
     </div>
 
 </div>
 
 </body>
 </html>
+

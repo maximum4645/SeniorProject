@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Latest Capture</title>
+    <title>Smart Bin Latest Capture</title>
     <style>
         body {
             margin: 0;
@@ -15,49 +15,64 @@
             margin-bottom: 10px;
             text-align: center;
         }
-
         .container {
             display: flex;
             justify-content: center;
             gap: 20px;
             width: 100%;
         }
-
         .video-box {
             background: #1a1d24;
             padding: 15px;
             border-radius: 10px;
             border: 1px solid #2a2f3a;
-
-            /* same idea as index.html – image box */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
         }
-
         .video-box img {
             width: 640px;
             height: 480px;
             border-radius: 6px;
             border: 1px solid #333;
         }
-
+        .camera-info {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #9da3b0;
+        }
+        .status-text {
+            font-size: 14px;
+            color: #9da3b0;
+        }
+        .side-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
         .control-box {
             background: #1a1d24;
             padding: 15px;
             border-radius: 10px;
             border: 1px solid #2a2f3a;
-            height: fit-content;
+            min-width: 260px;
         }
-
-        .buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .control-box h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
         }
-
-        button {
+        .label-btn {
+            width: 180px;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: default;
+            background: #4fd1c5;
+            color: #000;
+            font-weight: bold;
+        }
+        .primary-btn {
             width: 180px;
             padding: 10px;
             border: none;
@@ -67,14 +82,31 @@
             color: #000;
             font-weight: bold;
         }
-
-        button:hover {
+        .primary-btn:hover {
             background: #6fe7db;
         }
-
-        .messages li {
-            margin-top: 8px;
+        .messages {
+            list-style-type: none;
+            padding-left: 0;
+            margin-top: 12px;
+            font-size: 13px;
             color: #9cdcfe;
+        }
+        .ai-result {
+            margin-top: 12px;
+            font-size: 14px;
+        }
+        .pill {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: #4fd1c5;
+            color: #000;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .error-text {
+            color: #ff6b6b;
         }
     </style>
 </head>
@@ -84,46 +116,73 @@
 
 <div class="container">
 
-    <!-- Left: latest image (same box style as live stream) -->
+    <!-- Left: latest image -->
     <div class="video-box">
         {% if latest_url %}
             <img src="{{ latest_url }}" alt="Latest captured image">
-            <p style="margin-top:10px; font-size:18px; color:#9da3b0;">
-                {% if camera_resolution %}
-                    Image: {{ camera_resolution[0] }} × {{ camera_resolution[1] }}
-                {% else %}
-                    Latest captured image
-                {% endif %}
+            <p class="camera-info">
+                Image: {{ camera_resolution[0] }} × {{ camera_resolution[1] }}
             </p>
         {% else %}
-            <p style="font-size:18px; color:#9da3b0;">
+            <p class="status-text">
                 No images yet. Waiting for the first button press…
             </p>
         {% endif %}
     </div>
 
-    <!-- Right: class label panel (mirrors “Capture into class”) -->
-    <div class="control-box">
-        <h3>Class label</h3>
+    <!-- Right side: human label + AI prediction -->
+    <div class="side-column">
 
-        <div class="buttons">
+        <!-- Human label card -->
+        <div class="control-box">
+            <h3>Class label</h3>
+
             {% if latest_class %}
-                <!-- Just show the label as a disabled button to match the look -->
-                <button type="button" disabled>{{ latest_class|capitalize }}</button>
+                <button type="button" class="label-btn" disabled>
+                    {{ latest_class|capitalize }}
+                </button>
             {% else %}
-                <p style="font-size:14px; color:#9da3b0;">
-                    No image available yet.
-                </p>
+                <p class="status-text">No image available yet.</p>
             {% endif %}
+
+            <ul class="messages">
+                {% if latest_time %}
+                    <li>Last updated: {{ latest_time }}</li>
+                {% else %}
+                    <li>Waiting for first capture…</li>
+                {% endif %}
+            </ul>
         </div>
 
-        <div class="messages">
-            {% if latest_time %}
-                <p>Last updated: {{ latest_time }}</p>
-            {% else %}
-                <p>Waiting for first capture…</p>
-            {% endif %}
+        <!-- AI prediction card -->
+        <div class="control-box">
+            <h3>AI prediction</h3>
+
+            <form method="post" action="{{ url_for('classify_latest') }}">
+                <button type="submit" class="primary-btn">
+                    Classify latest image
+                </button>
+            </form>
+
+            <div class="ai-result">
+                {% if ai_error %}
+                    <p class="error-text">{{ ai_error }}</p>
+                {% elif ai_label %}
+                    <p>
+                        AI class:
+                        <span class="pill">{{ ai_label|capitalize }}</span>
+                    </p>
+                    {% if ai_confidence is not none %}
+                        <p>Confidence: {{ '%.2f'|format(ai_confidence) }}%</p>
+                    {% endif %}
+                {% else %}
+                    <p class="status-text">
+                        Not classified yet. Press the button to run inference.
+                    </p>
+                {% endif %}
+            </div>
         </div>
+
     </div>
 
 </div>

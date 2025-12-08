@@ -79,7 +79,8 @@ IMAGE_CLASSES = ['general', 'plastic', 'paper', 'metal']
 # ----------------------------
 # Data Collection / Image Save Directory
 # ----------------------------
-IMAGE_SAVE_DIR = os.path.join("images")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+IMAGE_SAVE_DIR = os.path.join(BASE_DIR, "camera", "images")
 if not os.path.exists(IMAGE_SAVE_DIR):
     os.makedirs(IMAGE_SAVE_DIR)
 

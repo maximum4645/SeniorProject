@@ -67,7 +67,7 @@ def close_trapdoor():
     servo_left.angle  = LEFT_DOWN
     servo_right.angle = RIGHT_DOWN
     print("Flaps CLOSED")
-    time.sleep(2)
+    time.sleep(1)
 
 def cleanup_servo():
     """Deinitialize the PCA9685 to stop sending PWM."""

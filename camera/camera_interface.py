@@ -81,7 +81,8 @@ def capture():
     full_path = os.path.join(save_dir, filename)
     
     cv2.imwrite(full_path, frame)
-    flash(f"Captured image saved as {full_path}")
+    rel_path = os.path.relpath(full_path, PROJECT_ROOT)
+    flash(f"Captured image saved as {rel_path}")
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
